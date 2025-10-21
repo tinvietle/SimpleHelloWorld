@@ -58,7 +58,7 @@ function fetchObjectFromBucketWithRole() {
                 const cellDownload = document.createElement('td');
                 const link = document.createElement('a');
                 link.textContent = 'Download';
-                link.href = `${BASE_URL}/object-with-role/${key}`;
+                link.href = `${BASE_URL}/download-object/${key}`;
                 link.download = key;
                 cellDownload.appendChild(link);
                 row.appendChild(cellDownload);
