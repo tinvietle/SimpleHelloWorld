@@ -31,27 +31,28 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+
+      <groupId>jakarta.servlet</groupId>
+
+      <artifactId>jakarta.servlet-api</artifactId>
+
+      <version>6.0.0</version>
+
+      <scope>provided</scope>
+
+    </dependency>
+
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+    </dependency>
   </dependencies>
 
   <dependencyManagement>
 
     <dependencies>
-      <dependency>
-
-        <groupId>jakarta.servlet</groupId>
-
-        <artifactId>jakarta.servlet-api</artifactId>
-
-        <version>6.0.0</version>
-
-        <scope>provided</scope>
-
-      </dependency>
-
-      <dependency>
-        <groupId>software.amazon.awssdk</groupId>
-        <artifactId>s3</artifactId>
-      </dependency>
 
       <dependency>
 
