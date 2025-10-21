@@ -24,6 +24,7 @@ function fetchObjectWithRole(key) {
 
 function fetchObjectFromBucketWithRole() {
     let url = `${BASE_URL}/object-bucket-with-role`;
+    const tableBody = document.getElementById('table-body');
     fetch(url)
     .then(response => response.text())
     .then((textData) => {
