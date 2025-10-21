@@ -6,5 +6,6 @@
 <!-- <button onclick="fetchObject('cat.jpeg')">Load cat.jpeg</button> -->
 <script src="js/fetch.js"></script>
 <script>fetchObjectWithRole('cat.jpeg')</script>
+<script>fetchObjectFromBucketWithRole()</script>
 </body>
 </html>
