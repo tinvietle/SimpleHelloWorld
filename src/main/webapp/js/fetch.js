@@ -23,37 +23,48 @@ function fetchObjectWithRole(key) {
 }
 
 function fetchObjectFromBucketWithRole() {
-    let url = `${BASE_URL}/object-bucket-with-role`;
-    document.addEventListener('DOMContentLoaded', () => {
-        const tableBody = document.getElementById('table-body');
-        fetch(url)
-            .then(response => response.text())
-            .then((textData) => {
-                const lines = textData.split('\n');
-                const keys = lines.slice(2).filter(key => key.trim() !== '');
+    const url = `${BASE_URL}/object-bucket-with-role`;
+    const tableBody = document.getElementById('table-body');
 
-                keys.forEach(key => {
-                    const row = document.createElement('tr');
+    fetch(url)
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to fetch bucket list");
+            return response.text();
+        })
+        .then(textData => {
+            const keys = textData
+                .split('\n')
+                .map(k => k.trim())
+                .filter(k => k !== '');
 
-                    const cellImage = document.createElement('td');
-                    const img = document.createElement('img');
-                    img.width = 100;
-                    img.height = 100;
-                    img.src = `${BASE_URL}/object-bucket-with-role/${key}`;
-                    cellImage.appendChild(img);
-                    row.appendChild(cellImage);
+            keys.forEach(key => {
+                const row = document.createElement('tr');
 
-                    const cellDownload = document.createElement('td');
-                    const downloadLink = document.createElement('a');
-                    downloadLink.textContent = 'Download';
-                    downloadLink.className = 'download-button';
-                    downloadLink.href = `${BASE_URL}/object-bucket-with-role/${key}`;
-                    cellDownload.appendChild(downloadLink);
+                // Object name
+                const cellName = document.createElement('td');
+                cellName.textContent = key;
+                row.appendChild(cellName);
 
-                    row.appendChild(cellDownload);
+                // Image preview
+                const cellImage = document.createElement('td');
+                const img = document.createElement('img');
+                img.width = 100;
+                img.height = 100;
+                img.src = `${BASE_URL}/object-with-role/${key}`;
+                cellImage.appendChild(img);
+                row.appendChild(cellImage);
 
-                    tableBody.appendChild(row);
-                });
+                // Download link
+                const cellDownload = document.createElement('td');
+                const link = document.createElement('a');
+                link.textContent = 'Download';
+                link.href = `${BASE_URL}/object-with-role/${key}`;
+                cellDownload.appendChild(link);
+                row.appendChild(cellDownload);
+
+                tableBody.appendChild(row);
             });
-    });
+        })
+        .catch(err => console.error("fetchObjectFromBucketWithRole error:", err));
 }
+
