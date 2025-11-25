@@ -23,8 +23,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
     <div>
         <label for="file_input">file: </label>
         <input type="file" id="file_input">
-        <button id="upload_button" onclick="uploadObject()">Upload</button>
+        <button id="upload_button" onclick="uploadObject(); inserDescription();">Upload</button>
     </div>
+
+    <label for="Description">Description:</label>
+    <input type="text" id="Description" name="Description" placeholder="Put some text here...">
 
     <div>
         <h1>Bucket List</h1>
@@ -75,11 +78,11 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             reader.readAsArrayBuffer(file);
         }
 
-        function deleteObject(filename){
+        function deleteObject(filename) {
             let url = "https://nain725jeyp5oi4pmvnxgjnww40wbqym.lambda-url.us-east-1.on.aws/";
             const body = {
-                    "key": filename
-                };
+                "key": filename
+            };
             fetch(url, {
                 method: 'DELETE',
                 body: JSON.stringify(body)
@@ -91,7 +94,12 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 });
         }
 
-        function renderListOfObjects(listOfObjects) {
+        async function renderListOfObjects(listOfObjects) {
+            const descriptionList = await fetchDescriptionList();
+
+            console.log(descriptionList);
+            console.log(descriptionList.get("cat.jpeg"));
+
             let objectsTable = document.getElementById("objectsTable");
             while (objectsTable.firstChild) {
                 objectsTable.removeChild(objectsTable.lastChild);
@@ -109,6 +117,13 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 img.alt = "Loading...";
                 imageCell.appendChild(img);
                 fetchThumbnail(objectsArray[i].key, img);
+                /* */
+                let descriptionCell = document.createElement("td");
+                let descriptionText = "No description";
+                if (descriptionList && descriptionList.has(objectsArray[i].key)) {
+                    descriptionText = descriptionList.get(objectsArray[i].key);
+                }
+                descriptionCell.innerHTML = descriptionText;
                 /* */
                 let downloadCell = document.createElement("td");
                 let downloadButton = document.createElement("button");
@@ -129,6 +144,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 /* */
                 row.appendChild(imageCell);
                 row.appendChild(keyCell);
+                row.appendChild(descriptionCell);
                 row.appendChild(downloadCell);
                 row.appendChild(deleteCell);
                 objectsTable.appendChild(row);
@@ -188,30 +204,30 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 method: 'POST',
                 body: JSON.stringify(body)
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Thumbnail not ready');
-                }
-                return response.blob();
-            })
-            .then((myBlob) => {
-                const objectURL = URL.createObjectURL(myBlob);
-                imgElement.src = objectURL;
-                imgElement.alt = key;
-            })
-            .catch((error) => {
-                // Fallback: show placeholder or original image key
-                imgElement.alt = "Thumbnail processing...";
-                // if the name is cloud-public.html, do nothing
-                if (key === "cloud-public.html") {
-                    imgElement.alt = "No thumbnail";
-                    return;
-                }
-                // Retry after 2 seconds
-                setTimeout(() => {
-                    fetchThumbnail(key, imgElement);
-                }, 2000);
-            });
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Thumbnail not ready');
+                    }
+                    return response.blob();
+                })
+                .then((myBlob) => {
+                    const objectURL = URL.createObjectURL(myBlob);
+                    imgElement.src = objectURL;
+                    imgElement.alt = key;
+                })
+                .catch((error) => {
+                    // Fallback: show placeholder or original image key
+                    imgElement.alt = "Thumbnail processing...";
+                    // if the name is cloud-public.html, do nothing
+                    if (key === "cloud-public.html") {
+                        imgElement.alt = "No thumbnail";
+                        return;
+                    }
+                    // Retry after 2 seconds
+                    setTimeout(() => {
+                        fetchThumbnail(key, imgElement);
+                    }, 2000);
+                });
         }
 
         /* GET BUCKET OBJECT LIST */
@@ -273,17 +289,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                     // Create a blob URL
                     const blob = xhr.response;
                     const url = window.URL.createObjectURL(blob);
-                    
+
                     // Create a temporary link element
                     const a = document.createElement('a');
                     a.style.display = 'none';
                     a.href = url;
                     a.download = key; // Use the filename from the key
-                    
+
                     // Trigger download
                     document.body.appendChild(a);
                     a.click();
-                    
+
                     // Cleanup
                     window.URL.revokeObjectURL(url);
                     document.body.removeChild(a);
@@ -298,6 +314,48 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
             xhr.responseType = 'blob';
             xhr.send(body1);
         }
+
+        function fetchDescriptionList() {
+            const url = "https://kwncgnx3w2iaqjwhy5mqbqtsey0xtjdv.lambda-url.us-east-1.on.aws/";
+
+            return fetch(url)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error, status = ${response.status}`);
+                    }
+                    return response.json(); // parse JSON directly
+                })
+                .then((data) => {
+                    // Convert array to map: ID -> {Description, S3Key}
+                    const map = new Map();
+                    data.forEach(item => {
+                        map.set(item.S3Key, item.Description);
+                    });
+                    return map;
+                })
+                .catch((error) => {
+                    console.log(`Error: ${error.message}`);
+                    return null;
+                });
+        }
+
+        function inserDescription() {
+            let url = "https://lsc44icvx5zobvwwbojhp5j2di0lzstc.lambda-url.us-east-1.on.aws/";
+            const description = document.getElementById('Description').value;
+            const s3key = document.getElementById('file_input').files[0].name;
+            const body = {
+                "description": description,
+                "imageKey": s3key
+            };
+            fetch(url, {
+                method: 'PUT',
+                body: JSON.stringify(body)
+            })
+                .then((resp) => resp.text())
+                .then(function (response) {
+                    console.info('fetch()', response);
+                });
+        };
 
 
     </script>
