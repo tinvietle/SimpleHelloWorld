@@ -23,7 +23,8 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
     <div>
         <label for="file_input">file: </label>
         <input type="file" id="file_input">
-        <button id="upload_button" onclick="uploadObject(); inserDescription();">Upload</button>
+        <!-- <button id="upload_button" onclick="uploadObject(); insertDescription();">Upload</button> -->
+        <button id="upload_button" onclick="triggerUploadFileAndDescription()">Upload</button>
     </div>
 
     <label for="Description">Description:</label>
@@ -226,7 +227,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                     // Retry after 2 seconds
                     setTimeout(() => {
                         fetchThumbnail(key, imgElement);
-                    }, 2000);
+                    }, 2000);                    
                 });
         }
 
@@ -339,7 +340,42 @@ Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Html.html to edit thi
                 });
         }
 
-        function inserDescription() {
+        function triggerUploadFileAndDescription(){
+            let file_input = document.getElementById("file_input");
+            let file = file_input.files[0];
+            let reader = new FileReader();
+            const description = document.getElementById('Description').value;
+            let url = "https://hf6mtrnzrmzmyldl72kcv43dwi0nwfnn.lambda-url.us-east-1.on.aws/";
+            reader.onload = () => {
+                //The Uint8Array allows you to read and write individual
+                //bytes within the ArrayBuffer using array-like indexing.
+                const uint8Array = new Uint8Array(reader.result);
+                //The toBase64() method of Uint8Array instances returns a base64-encoded string
+                //based on the data in this Uint8Array object.
+                const body = {
+                    "content": uint8Array.toBase64(),
+                    "key": file.name,
+                    "description": description,
+                };
+                fetch(url, {
+                    method: 'PUT',
+                    body: JSON.stringify(body)
+                })
+                    .then((resp) => resp.text())
+                    .then(function (response) {
+                        console.info('fetch()', response);
+                    })
+                    .then(() => {
+                        fetchListOfObjects();
+                    });
+            };
+            reader.onerror = (e) => {
+                console.log('Error : ' + e.type);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function insertDescription() {
             let url = "https://lsc44icvx5zobvwwbojhp5j2di0lzstc.lambda-url.us-east-1.on.aws/";
             const description = document.getElementById('Description').value;
             const s3key = document.getElementById('file_input').files[0].name;
